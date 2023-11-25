@@ -164,7 +164,7 @@ def generate_story_button_clicked():
     pdf.multi_cell(0, 5, "~ The End ~", align="C")
 
     html = create_download_link(pdf.output(dest="S").encode("latin-1"), "test")
-    col2.markdown(html, unsafe_allow_html=True)
+    st.markdown(html, unsafe_allow_html=True)
 
     # Save the PDF to a temporary file
     with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as temp_pdf_file:
