@@ -10,9 +10,6 @@ import tempfile
 debug = False
 
 
-def create_download_link(val, filename):
-    b64 = base64.b64encode(val)  # val looks like b'...'
-    return f'<a href="data:application/octet-stream;base64,{b64.decode()}" download="{filename}.pdf">Download the story</a>'
 
 
 def craft_story_prompt():
@@ -76,7 +73,7 @@ def invent_a_story(story_prompt):
          messages=[{"role": "user", "content": story_prompt}],
          max_tokens= 1000,
          temperature= 0.2
-     )
+    )
     story_json_str = completion.choices[0].message.content
     #story_json_str = '{ "title": "The Adventure of Adonis and Nida", "setup": "Once upon a time, in a land filled with magic and wonder, lived two best friends named Adonis and Nida. Adonis loved math, the color yellow, and playing video games, while Nida adored arts and crafts, unicorns, and anything pink and purple. One sunny afternoon, Adonis and Nida decided to explore a mysterious cave they had heard about from their friends.", "development": "As they entered the dark cave, they noticed a small, playful kitten named Biss following them. Suddenly, they stumbled across a portal that transported them into the world of video games. Shocked and excited, they found themselves face to face with Kirby, a kind-hearted character they admired from their favorite Nintendo Switch game. Kirby had lost his way and needed their help to return home.", "climax": "Together, Adonis, Nida, Bobby, Suzie, Biss, and Kirby embarked on a thrilling adventure through treacherous terrains and tricky puzzles. Along the way, they encountered strange creatures and faced their fears. They learned that kindness and teamwork were their greatest strengths.", "resolution": "Eventually, they found the portal that led Kirby back home. Grateful and inspired, Kirby thanked them, reminding everyone that it is important to be kind to others, even if they are different. Adonis and Nida returned to their world, carrying the message of kindness in their hearts. They realized that their differences made them a stronger team and cherished their friendship even more. Adonis taught Nida some math tricks, and Nida showed Adonis how to create beautiful unicorn crafts. From that day on, they learned to appreciate and celebrate their unique interests while always being kind to others." }'
 
@@ -110,86 +107,108 @@ def invent_an_image(image_prompt):
 
     return image, image_data
 
+def create_download_link(val, filename):
+    b64 = base64.b64encode(val) 
+    return f'<a href="data:application/octet-stream;base64,{b64.decode()}" download="{filename}.pdf"><span style="text-align:center">Download the story as PDF</span></a>'
+
+
+def display_story(story_title, story_setup, story_development, story_climax, story_resolution, image, download_html):
+
+    leftMargin, middle, rightMargin = st.columns((1, 3, 1))
+    with middle:
+        st.markdown("<h1 style='text-align: center; color: Black;'>"+story_title+"</h1>", unsafe_allow_html=True)
+        st.markdown("<div style='text-align:center'>"+download_html+"</div>", unsafe_allow_html=True)
+        st.image(image, use_column_width=True)
+        st.write(story_setup)
+        st.write(story_development)
+        st.write(story_climax)
+        st.write(story_resolution)
+        st.markdown("<h2 style='text-align: center; color: Black;'><i>"+"~ The End ~"+"</i></h2>", unsafe_allow_html=True)
+
+
+
 
 def generate_story_button_clicked():
 
-    # story_prompt = craft_story_prompt()
+    story_prompt = craft_story_prompt()
 
-    # if debug:
-    #     st.text_area(label="Story Prompt", value=story_prompt, height=200)
+    if debug:
+        st.text_area(label="Story Prompt", value=story_prompt, height=200)
 
-    # story_json, story_title, story_setup, story_development, story_climax, story_resolution = invent_a_story(story_prompt)
+    story_json, story_title, story_setup, story_development, story_climax, story_resolution = invent_a_story(story_prompt)
     
-    # image_prompt = craft_image_prompt(story_json)
+    image_prompt = craft_image_prompt(story_json)
 
-    # if debug:
-    #     st.text_area(label="Image Prompt", value=image_prompt, height=200)
+    if debug:
+        st.text_area(label="Image Prompt", value=image_prompt, height=200)
 
-    # image, image_data = invent_an_image(image_prompt)
+    image, image_data = invent_an_image(image_prompt)
 
-    # pdf = FPDF()
-    # pdf.add_page()
+    pdf = FPDF()
+    pdf.add_page()
 
-    # # Create a temporary file to save the image
-    # with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as temp_image_file:
-    #     image_path = temp_image_file.name
-    #     image.save(temp_image_file, format='JPEG')
+    # Create a temporary file to save the image
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as temp_image_file:
+        image_path = temp_image_file.name
+        image.save(temp_image_file, format='JPEG')
 
-    # # Get image dimensions to maintain aspect ratio
-    # width, height = image.size
-    # aspect_ratio = width / height
-    # pdf_width = pdf.w - 2 * pdf.l_margin
-    # pdf_height = pdf_width / aspect_ratio
+    # Get image dimensions to maintain aspect ratio
+    width, height = image.size
+    aspect_ratio = width / height
+    pdf_width = pdf.w - 2 * pdf.l_margin
+    pdf_height = pdf_width / aspect_ratio
 
-    # pdf.set_font('Arial', 'B', 16)
-    # pdf.cell(200, 10, txt=story_title, ln=True, align='C')  # Centered title
-    # pdf.ln(10)
+    pdf.set_font('Arial', 'B', 16)
+    pdf.cell(200, 10, txt=story_title, ln=True, align='C')  # Centered title
+    pdf.ln(10)
 
-    # # Add the image to the PDF
-    # image_width = 150
-    # image_height = 150
-    # pdf.image(image_path, x=pdf.l_margin+(pdf_width/2)-(image_width/2), y=pdf.get_y(), w=image_width, h=image_height)
-    # pdf.ln(150 + 10)  # Move below the image
+    # Add the image to the PDF
+    image_width = 150
+    image_height = 150
+    pdf.image(image_path, x=pdf.l_margin+(pdf_width/2)-(image_width/2), y=pdf.get_y(), w=image_width, h=image_height)
+    pdf.ln(150 + 10)  # Move below the image
 
-    # pdf.set_font('Arial', '', 12)
-    # pdf.multi_cell(0, 5, story_setup)
-    # pdf.ln(5)
-    # pdf.multi_cell(0, 5, story_development)
-    # pdf.ln(5)
-    # pdf.multi_cell(0, 5, story_climax)
-    # pdf.ln(5)
-    # pdf.multi_cell(0, 5, story_resolution)
-    # pdf.ln(5)
-    # pdf.set_font('Arial', 'B', 16)
-    # pdf.multi_cell(0, 5, "~ The End ~", align="C")
+    pdf.set_font('Arial', '', 12)
+    pdf.multi_cell(0, 5, story_setup)
+    pdf.ln(5)
+    pdf.multi_cell(0, 5, story_development)
+    pdf.ln(5)
+    pdf.multi_cell(0, 5, story_climax)
+    pdf.ln(5)
+    pdf.multi_cell(0, 5, story_resolution)
+    pdf.ln(5)
+    pdf.set_font('Arial', 'B', 16)
+    pdf.multi_cell(0, 5, "~ The End ~", align="C")
 
-    # html = create_download_link(pdf.output(dest="S").encode("latin-1"), "test")
-    # st.markdown(html, unsafe_allow_html=True)
+    download_html = create_download_link(pdf.output(dest="S").encode("latin-1"), "test")
+    
+    display_story(story_title, story_setup, story_development, story_climax, story_resolution, image, download_html)
 
-    # # Save the PDF to a temporary file
-    # with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as temp_pdf_file:
-    #     pdf_file_path = temp_pdf_file.name
-    #     pdf.output(pdf_file_path)
-
-    # # Read the temporary PDF file into a BytesIO object
-    # with open(pdf_file_path, 'rb') as file:
-    #     pdf_content = file.read()
-    #     base64_encoded_pdf = base64.b64encode(pdf_content)
+    # Save the PDF to a temporary file
+    #with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as temp_pdf_file:
+    #    pdf_file_path = temp_pdf_file.name
+    #    pdf.output(pdf_file_path)
 
     # Read the temporary PDF file into a BytesIO object
-    with open("test.pdf", 'rb') as file:
-        pdf_content = file.read()
-        base64_encoded_pdf = base64.b64encode(pdf_content)
+    #with open(pdf_file_path, 'rb') as file:
+    #    pdf_content = file.read()
+    #    base64_encoded_pdf = base64.b64encode(pdf_content)
+
+    # Read the temporary PDF file into a BytesIO object
+    #with open("test.pdf", 'rb') as file:
+    #    pdf_content = file.read()
+    #    base64_encoded_pdf = base64.b64encode(pdf_content)
 
     # Convert base64 bytes to string
-    base64_string_pdf = base64_encoded_pdf.decode('utf-8')
+    #base64_string_pdf = base64_encoded_pdf.decode('utf-8')
 
     # Embedding PDF in HTML
     #pdf_display = F'<iframe src="data:application/pdf;base64,{base64_string_pdf}" width="1000" height="2000" type="application/pdf"></iframe>'
-    pdf_display = F'<object data="data:application/pdf;base64,{base64_string_pdf}" width="1000" height="2000" type="application/pdf"></object>'
+    #pdf_display = F'<object data="data:application/pdf;base64,{base64_string_pdf}" width="1000" height="2000" type="application/pdf"></object>'
 
     # Displaying File
-    st.markdown(pdf_display, unsafe_allow_html=True)
+    #st.markdown(pdf_display, unsafe_allow_html=True)
+
 
 
 st.set_page_config(layout="wide")
