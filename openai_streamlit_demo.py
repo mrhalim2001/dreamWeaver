@@ -113,66 +113,71 @@ def invent_an_image(image_prompt):
 
 def generate_story_button_clicked():
 
-    story_prompt = craft_story_prompt()
+    # story_prompt = craft_story_prompt()
 
-    if debug:
-        st.text_area(label="Story Prompt", value=story_prompt, height=200)
+    # if debug:
+    #     st.text_area(label="Story Prompt", value=story_prompt, height=200)
 
-    story_json, story_title, story_setup, story_development, story_climax, story_resolution = invent_a_story(story_prompt)
+    # story_json, story_title, story_setup, story_development, story_climax, story_resolution = invent_a_story(story_prompt)
     
-    image_prompt = craft_image_prompt(story_json)
+    # image_prompt = craft_image_prompt(story_json)
 
-    if debug:
-        st.text_area(label="Image Prompt", value=image_prompt, height=200)
+    # if debug:
+    #     st.text_area(label="Image Prompt", value=image_prompt, height=200)
 
-    image, image_data = invent_an_image(image_prompt)
+    # image, image_data = invent_an_image(image_prompt)
 
-    pdf = FPDF()
-    pdf.add_page()
+    # pdf = FPDF()
+    # pdf.add_page()
 
-    # Create a temporary file to save the image
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as temp_image_file:
-        image_path = temp_image_file.name
-        image.save(temp_image_file, format='JPEG')
+    # # Create a temporary file to save the image
+    # with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as temp_image_file:
+    #     image_path = temp_image_file.name
+    #     image.save(temp_image_file, format='JPEG')
 
-    # Get image dimensions to maintain aspect ratio
-    width, height = image.size
-    aspect_ratio = width / height
-    pdf_width = pdf.w - 2 * pdf.l_margin
-    pdf_height = pdf_width / aspect_ratio
+    # # Get image dimensions to maintain aspect ratio
+    # width, height = image.size
+    # aspect_ratio = width / height
+    # pdf_width = pdf.w - 2 * pdf.l_margin
+    # pdf_height = pdf_width / aspect_ratio
 
-    pdf.set_font('Arial', 'B', 16)
-    pdf.cell(200, 10, txt=story_title, ln=True, align='C')  # Centered title
-    pdf.ln(10)
+    # pdf.set_font('Arial', 'B', 16)
+    # pdf.cell(200, 10, txt=story_title, ln=True, align='C')  # Centered title
+    # pdf.ln(10)
 
-    # Add the image to the PDF
-    image_width = 150
-    image_height = 150
-    pdf.image(image_path, x=pdf.l_margin+(pdf_width/2)-(image_width/2), y=pdf.get_y(), w=image_width, h=image_height)
-    pdf.ln(150 + 10)  # Move below the image
+    # # Add the image to the PDF
+    # image_width = 150
+    # image_height = 150
+    # pdf.image(image_path, x=pdf.l_margin+(pdf_width/2)-(image_width/2), y=pdf.get_y(), w=image_width, h=image_height)
+    # pdf.ln(150 + 10)  # Move below the image
 
-    pdf.set_font('Arial', '', 12)
-    pdf.multi_cell(0, 5, story_setup)
-    pdf.ln(5)
-    pdf.multi_cell(0, 5, story_development)
-    pdf.ln(5)
-    pdf.multi_cell(0, 5, story_climax)
-    pdf.ln(5)
-    pdf.multi_cell(0, 5, story_resolution)
-    pdf.ln(5)
-    pdf.set_font('Arial', 'B', 16)
-    pdf.multi_cell(0, 5, "~ The End ~", align="C")
+    # pdf.set_font('Arial', '', 12)
+    # pdf.multi_cell(0, 5, story_setup)
+    # pdf.ln(5)
+    # pdf.multi_cell(0, 5, story_development)
+    # pdf.ln(5)
+    # pdf.multi_cell(0, 5, story_climax)
+    # pdf.ln(5)
+    # pdf.multi_cell(0, 5, story_resolution)
+    # pdf.ln(5)
+    # pdf.set_font('Arial', 'B', 16)
+    # pdf.multi_cell(0, 5, "~ The End ~", align="C")
 
-    html = create_download_link(pdf.output(dest="S").encode("latin-1"), "test")
-    st.markdown(html, unsafe_allow_html=True)
+    # html = create_download_link(pdf.output(dest="S").encode("latin-1"), "test")
+    # st.markdown(html, unsafe_allow_html=True)
 
-    # Save the PDF to a temporary file
-    with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as temp_pdf_file:
-        pdf_file_path = temp_pdf_file.name
-        pdf.output(pdf_file_path)
+    # # Save the PDF to a temporary file
+    # with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as temp_pdf_file:
+    #     pdf_file_path = temp_pdf_file.name
+    #     pdf.output(pdf_file_path)
+
+    # # Read the temporary PDF file into a BytesIO object
+    # with open(pdf_file_path, 'rb') as file:
+    #     pdf_content = file.read()
+    #     base64_encoded_pdf = base64.b64encode(pdf_content)
 
     # Read the temporary PDF file into a BytesIO object
-    with open(pdf_file_path, 'rb') as file:
+    with open("test.pdf", 'rb') as file:
         pdf_content = file.read()
         base64_encoded_pdf = base64.b64encode(pdf_content)
 
@@ -180,7 +185,8 @@ def generate_story_button_clicked():
     base64_string_pdf = base64_encoded_pdf.decode('utf-8')
 
     # Embedding PDF in HTML
-    pdf_display = F'<iframe src="data:application/pdf;base64,{base64_string_pdf}" width="1000" height="2000" type="application/pdf"></iframe>'
+    #pdf_display = F'<iframe src="data:application/pdf;base64,{base64_string_pdf}" width="1000" height="2000" type="application/pdf"></iframe>'
+    pdf_display = F'<object data="data:application/pdf;base64,{base64_string_pdf}" width="1000" height="2000" type="application/pdf"></object>'
 
     # Displaying File
     st.markdown(pdf_display, unsafe_allow_html=True)
