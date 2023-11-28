@@ -11,6 +11,9 @@ from openai import OpenAI
 from fpdf import FPDF
 
 
+show_default_image = False
+show_default_story = False
+
 def debug_print(label, message):
         
         print(label+": "+message)
@@ -87,23 +90,38 @@ def craft_image_prompt(story_json):
 
     return "A colorful cartoonish storybook image about "+image_prompt
 
+def get_default_story(language="English"):
+
+    if (language=="Russian"):
+
+        story_json_str = '''{
+        "title": "Приключения в доме с привидениями",
+        "setup": "Однажды, Адонис и его лучший друг Бобби решили исследовать старый заброшенный дом на окраине города. Они слышали много страшных историй о привидениях, которые там обитают, но их любопытство было сильнее страха. В то же время, Нида и ее подруга Сьюзи решили прогуляться и увидели, как Адонис и Бобби входят в старый дом. Они решили следовать за ними, взяв с собой их маленького котенка Бисса.",
+        "development": "Внутри дома было темно и страшно. Адонис и Бобби начали искать признаки привидений, а Нида и Сьюзи прятались, наблюдая за ними. Внезапно, они услышали странный шум. Это было что-то вроде стука в стену. Все они замерли от страха. Нида и Сьюзи начали плакать, а Бисс начал мяукать. Адонис и Бобби решили исследовать источник звука.",
+        "climax": "Они подошли к стене, откуда доносился звук. Адонис, собрав все свое мужество, открыл тайную дверь в стене. Внутри была маленькая комната, где жил маленький мышонок. Он бил по стене, пытаясь пробиться наружу. Все они были облегчены, что это не привидение. Но мышонок был очень испуган и замер от страха, увидев их.",
+        "resolution": "Нида, которая любила животных, подошла к мышонку и погладила его. Она успокоила его и обещала, что они его не обидят. Адонис и Бобби помогли ей освободить мышонка, и он быстро убежал. Все они были счастливы, что смогли помочь маленькому созданию. Они поняли, что важно быть добрыми к другим, даже если они отличаются от тебя. И с тех пор, они больше не боялись старого дома, зная, что там нет привидений."
+        }'''
+    else:
+        story_json_str = '''{ 
+        "title": "The Adventure of Adonis and Nida", 
+        "setup": "Once upon a time, in a land filled with magic and wonder, lived two best friends named Adonis and Nida. Adonis loved math, the color yellow, and playing video games, while Nida adored arts and crafts, unicorns, and anything pink and purple. One sunny afternoon, Adonis and Nida decided to explore a mysterious cave they had heard about from their friends.", 
+        "development": "As they entered the dark cave, they noticed a small, playful kitten named Biss following them. Suddenly, they stumbled across a portal that transported them into the world of video games. Shocked and excited, they found themselves face to face with Kirby, a kind-hearted character they admired from their favorite Nintendo Switch game. Kirby had lost his way and needed their help to return home.", 
+        "climax": "Together, Adonis, Nida, Bobby, Suzie, Biss, and Kirby embarked on a thrilling adventure through treacherous terrains and tricky puzzles. Along the way, they encountered strange creatures and faced their fears. They learned that kindness and teamwork were their greatest strengths.", 
+        "resolution": "Eventually, they found the portal that led Kirby back home. Grateful and inspired, Kirby thanked them, reminding everyone that it is important to be kind to others, even if they are different. Adonis and Nida returned to their world, carrying the message of kindness in their hearts. They realized that their differences made them a stronger team and cherished their friendship even more. Adonis taught Nida some math tricks, and Nida showed Adonis how to create beautiful unicorn crafts. From that day on, they learned to appreciate and celebrate their unique interests while always being kind to others." 
+        }'''
+
+    story_json = json.loads(story_json_str)
+
+    story_title = story_json["title"] if story_json else "No Title"
+    story_setup = story_json["setup"] if story_json else "Once upon a time..."
+    story_development = story_json["development"] if story_json else "Then..."
+    story_climax = story_json["climax"] if story_json else "Suddenly..."
+    story_resolution = story_json["resolution"] if story_json else "And they lived happily ever after."
+   
+    return story_json, story_title, story_setup, story_development, story_climax, story_resolution
+
 def invent_a_story(story_prompt):
 
-    # story_json_str = '''{
-    #     "title": "Приключения в доме с привидениями",
-    #     "setup": "Однажды, Адонис и его лучший друг Бобби решили исследовать старый заброшенный дом на окраине города. Они слышали много страшных историй о привидениях, которые там обитают, но их любопытство было сильнее страха. В то же время, Нида и ее подруга Сьюзи решили прогуляться и увидели, как Адонис и Бобби входят в старый дом. Они решили следовать за ними, взяв с собой их маленького котенка Бисса.",
-    #     "development": "Внутри дома было темно и страшно. Адонис и Бобби начали искать признаки привидений, а Нида и Сьюзи прятались, наблюдая за ними. Внезапно, они услышали странный шум. Это было что-то вроде стука в стену. Все они замерли от страха. Нида и Сьюзи начали плакать, а Бисс начал мяукать. Адонис и Бобби решили исследовать источник звука.",
-    #     "climax": "Они подошли к стене, откуда доносился звук. Адонис, собрав все свое мужество, открыл тайную дверь в стене. Внутри была маленькая комната, где жил маленький мышонок. Он бил по стене, пытаясь пробиться наружу. Все они были облегчены, что это не привидение. Но мышонок был очень испуган и замер от страха, увидев их.",
-    #     "resolution": "Нида, которая любила животных, подошла к мышонку и погладила его. Она успокоила его и обещала, что они его не обидят. Адонис и Бобби помогли ей освободить мышонка, и он быстро убежал. Все они были счастливы, что смогли помочь маленькому созданию. Они поняли, что важно быть добрыми к другим, даже если они отличаются от тебя. И с тех пор, они больше не боялись старого дома, зная, что там нет привидений."
-    #     }'''
-
-    # story_json_str = '''{ 
-    #     "title": "The Adventure of Adonis and Nida", 
-    #     "setup": "Once upon a time, in a land filled with magic and wonder, lived two best friends named Adonis and Nida. Adonis loved math, the color yellow, and playing video games, while Nida adored arts and crafts, unicorns, and anything pink and purple. One sunny afternoon, Adonis and Nida decided to explore a mysterious cave they had heard about from their friends.", 
-    #     "development": "As they entered the dark cave, they noticed a small, playful kitten named Biss following them. Suddenly, they stumbled across a portal that transported them into the world of video games. Shocked and excited, they found themselves face to face with Kirby, a kind-hearted character they admired from their favorite Nintendo Switch game. Kirby had lost his way and needed their help to return home.", 
-    #     "climax": "Together, Adonis, Nida, Bobby, Suzie, Biss, and Kirby embarked on a thrilling adventure through treacherous terrains and tricky puzzles. Along the way, they encountered strange creatures and faced their fears. They learned that kindness and teamwork were their greatest strengths.", 
-    #     "resolution": "Eventually, they found the portal that led Kirby back home. Grateful and inspired, Kirby thanked them, reminding everyone that it is important to be kind to others, even if they are different. Adonis and Nida returned to their world, carrying the message of kindness in their hearts. They realized that their differences made them a stronger team and cherished their friendship even more. Adonis taught Nida some math tricks, and Nida showed Adonis how to create beautiful unicorn crafts. From that day on, they learned to appreciate and celebrate their unique interests while always being kind to others." 
-    #     }'''
 
     client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
     if (language=="English"):
@@ -181,16 +199,14 @@ def get_default_image():
     return image, image_data
 
 
-def create_download_link(val, filename):
-    b64 = base64.b64encode(val) 
-    return f'<a href="data:application/octet-stream;base64,{b64.decode()}" download="{filename}.pdf"><span style="text-align:center">Download the story as PDF</span></a>'
-
-def display_story(story_title, story_setup, story_development, story_climax, story_resolution, image, download_html):
+def display_story(story_title, story_setup, story_development, story_climax, story_resolution, image, pdf_bytes=None):
 
     leftMargin, middle, rightMargin = st.columns((1, 3, 1))
     with middle:
         st.markdown("<h1 style='text-align: center; color: Black;'>"+story_title+"</h1>", unsafe_allow_html=True)
-        st.markdown("<div style='text-align:center'>"+download_html+"</div>", unsafe_allow_html=True)
+        if pdf_bytes:
+            l_margin, button_column, r_margin = st.columns((2, 1, 2))
+            button_column.download_button(label="Download the story", data=pdf_bytes, file_name="bedtime story.pdf", mime="application/pdf", use_container_width=True)
         st.image(image, use_column_width=True)
         st.write(story_setup)
         st.write(story_development)
@@ -200,24 +216,30 @@ def display_story(story_title, story_setup, story_development, story_climax, sto
 
 def generate_story_button_clicked():
 
-    story_prompt = craft_story_prompt()
 
-    debug_print("story_prompt", story_prompt)
+    if show_default_story:
+        debug_print("Using default story...", " ")
+        story_json, story_title, story_setup, story_development, story_climax, story_resolution = get_default_story(language)
+    else:
+        story_prompt = craft_story_prompt()
+        debug_print("story_prompt", story_prompt)
+        story_json, story_title, story_setup, story_development, story_climax, story_resolution = invent_a_story(story_prompt)
 
-    story_json, story_title, story_setup, story_development, story_climax, story_resolution = invent_a_story(story_prompt)
 
 
-    image_prompt = craft_image_prompt(story_json)
 
-    debug_print("image_prompt", image_prompt)
-
-    #image, image_data = get_default_image()
-    try:
-        image, image_data = invent_an_image(image_prompt)
-    except Exception as e:
-        debug_print("Image generation failed", str(e))
+    if show_default_image:
         debug_print("Using default image...", " ")
         image, image_data = get_default_image()
+    else:
+        try:
+            image_prompt = craft_image_prompt(story_json)
+            debug_print("image_prompt", image_prompt)
+            image, image_data = invent_an_image(image_prompt)
+        except Exception as e:
+            debug_print("Image generation failed", str(e))
+            debug_print("Using default image...", " ")
+            image, image_data = get_default_image()
 
 
     pdf = FPDF()
@@ -258,13 +280,16 @@ def generate_story_button_clicked():
     pdf.set_font('Arial', 'B', 16)
     pdf.multi_cell(0, 5, "~ The End ~", align="C")
 
+
     try:
-        download_html = create_download_link(pdf.output(), "test")
+        pdf_output = pdf.output()
+        pdf_bytes = BytesIO(pdf_output)
+        display_story(story_title, story_setup, story_development, story_climax, story_resolution, image, pdf_bytes)
     except Exception as e:
         debug_print("PDF download link generation failed", str(e))
-        download_html = ""
+        display_story(story_title, story_setup, story_development, story_climax, story_resolution, image, None)
+       
 
-    display_story(story_title, story_setup, story_development, story_climax, story_resolution, image, download_html)
 
 
 
@@ -289,7 +314,6 @@ language = col1.selectbox(
    ("English", "Russian", "Arabic"),
    index=0,
    disabled=False,
-   #placeholder="",
 )
 
 reading_level_display = {"6 year old child": "Emerging pre-reader (6 months to 6 years)", "seven year old child": "Novice reader (6 to 7)", "9 year old child": "Decoding reader (7 to 9)", "a child 10 years or older": "Fluent child reader (9+)", "an adult": "Adult reader"}
