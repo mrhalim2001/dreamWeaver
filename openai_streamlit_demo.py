@@ -258,7 +258,11 @@ def generate_story_button_clicked():
     pdf.set_font('Arial', 'B', 16)
     pdf.multi_cell(0, 5, "~ The End ~", align="C")
 
-    download_html = create_download_link(pdf.output(), "test")    
+    try:
+        download_html = create_download_link(pdf.output(), "test")
+    except Exception as e:
+        debug_print("PDF download link generation failed", str(e))
+        download_html = ""
 
     display_story(story_title, story_setup, story_development, story_climax, story_resolution, image, download_html)
 
