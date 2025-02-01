@@ -8,8 +8,8 @@ import tempfile
 #These are dependencies that we need to install
 import streamlit as st
 from openai import OpenAI
+import streamlit as st
 from fpdf import FPDF
-
 
 show_default_image = False
 show_default_story = False
@@ -70,7 +70,7 @@ def craft_image_prompt(story_json):
     client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
     if (language=="English"):
-        model = "gpt-3.5-turbo"
+        model = "gpt-4" #"gpt-3.5-turbo"
     else:
         model = "gpt-4"
 
